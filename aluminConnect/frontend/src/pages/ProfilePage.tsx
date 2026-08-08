@@ -25,10 +25,17 @@ import {
   Phone,
   ChevronRight,
 } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../components/ui/select";
 
 const GRAD_YEARS = Array.from({ length: 26 }, (_, i) => String(2000 + i));
 
-// ── Simple modal wrapper ──────────────────────────────────────────────────────
+// ── Simple modal wrapper
 const Modal = ({
   title,
   onClose,
@@ -578,17 +585,23 @@ const UserProfile = () => {
                   <label className="block text-sm font-semibold text-gray-800 mb-1">
                     Graduation Year
                   </label>
-                  <select
-                    name="graduationYear"
+                  <Select
                     value={form.graduationYear}
-                    onChange={handleChange}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#1e3a6e]"
+                    onValueChange={(value) =>
+                      setForm((f) => ({ ...f, graduationYear: value }))
+                    }
                   >
-                    <option value="">— select —</option>
-                    {GRAD_YEARS.map((y) => (
-                      <option key={y}>{y}</option>
-                    ))}
-                  </select>
+                    <SelectTrigger className="w-full border-gray-300">
+                      <SelectValue placeholder="— select —" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {GRAD_YEARS.map((y) => (
+                        <SelectItem key={y} value={y}>
+                          {y}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
               <div>
@@ -609,18 +622,22 @@ const UserProfile = () => {
                   Employment Status{" "}
                   <span className="font-normal text-gray-400">(optional)</span>
                 </label>
-                <select
-                  name="employmentStatus"
+                <Select
                   value={form.employmentStatus}
-                  onChange={handleChange}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#1e3a6e]"
+                  onValueChange={(value) =>
+                    setForm((f) => ({ ...f, employmentStatus: value }))
+                  }
                 >
-                  <option value="">— not specified —</option>
-                  <option value="employed">Employed</option>
-                  <option value="self-employed">Self-employed</option>
-                  <option value="freelance">Freelance</option>
-                  <option value="unemployed">Unemployed</option>
-                </select>
+                  <SelectTrigger className="w-full border-gray-300">
+                    <SelectValue placeholder="— not specified —" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="employed">Employed</SelectItem>
+                    <SelectItem value="self-employed">Self-employed</SelectItem>
+                    <SelectItem value="freelance">Freelance</SelectItem>
+                    <SelectItem value="unemployed">Unemployed</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
 
               {isAlumni && (

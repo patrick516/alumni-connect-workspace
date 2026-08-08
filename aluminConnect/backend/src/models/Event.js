@@ -11,6 +11,11 @@ const eventSchema = new mongoose.Schema(
       ref: "User",
       required: true,
     },
+    status: {
+      type: String,
+      enum: ["pending", "approved", "rejected"],
+      default: "pending",
+    },
     participants: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
     imageUrl: { type: String, default: "" },
   },

@@ -18,6 +18,7 @@ import type {
   DirectoryFilters,
   FilterOptions,
 } from "../../types";
+import UserProfileModal from "../../components/directory/UserProfileModal";
 
 const AlumniDirectoryPage = () => {
   const { user } = useAuth();
@@ -42,6 +43,7 @@ const AlumniDirectoryPage = () => {
   });
   const [showFilters, setShowFilters] = useState(false);
   const [applyingFilters, setApplyingFilters] = useState(false);
+  const [viewingUserId, setViewingUserId] = useState<string | null>(null);
 
   const loadFilterOptions = useCallback(async () => {
     try {
@@ -155,6 +157,12 @@ const AlumniDirectoryPage = () => {
 
   return (
     <PageContainer title="Alumni directory">
+      {viewingUserId && (
+        <UserProfileModal
+          userId={viewingUserId}
+          onClose={() => setViewingUserId(null)}
+        />
+      )}
       <p className="text-sm text-gray-500 mb-4 max-w-2xl">
         Browse approved alumni and send a connection request. Once they accept,
         you can open Messages and chat in real time when you are both online.
@@ -393,8 +401,14 @@ const AlumniDirectoryPage = () => {
                 )}
 
                 <SkillBadges skills={a.skills} />
-
                 <div className="mt-4 flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setViewingUserId(a._id)}
+                    className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors"
+                  >
+                    View Profile
+                  </button>
                   {user?.role === "student" && (
                     <>
                       {st === "accepted" && (

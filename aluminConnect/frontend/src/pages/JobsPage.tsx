@@ -8,6 +8,14 @@ import {
   updateJobApi,
 } from "../api/jobApi";
 import type { Job } from "../types";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../components/ui/select";
+import { DatePicker } from "../components/ui/date-picker";
 
 export interface JobFormData {
   title: string;
@@ -119,18 +127,20 @@ const validateJobForm = (
   return { isValid: Object.keys(errors).length === 0, errors };
 };
 
-// ─── Job Detail Modal ──────────────────────────────────────────────────────────
+// ─── Job Detail Modal
 export function JobDetailModal({
   job,
   onClose,
   onApply,
   userRole,
+  currentUserId,
   onEdit,
 }: {
   job: Job;
   onClose: () => void;
   onApply: (id: string) => void;
   userRole?: string;
+  currentUserId?: string;
   onEdit?: (job: Job) => void;
 }) {
   const [applying, setApplying] = useState(false);
@@ -146,6 +156,9 @@ export function JobDetailModal({
   const canEdit =
     userRole === "admin" ||
     (userRole === "alumni" && job.postedBy?._id === userRole);
+
+  const hasApplied =
+    !!currentUserId && (job.applicants || []).includes(currentUserId);
 
   const handleApply = async () => {
     setApplying(true);
@@ -340,10 +353,14 @@ export function JobDetailModal({
           {userRole === "student" && job.status === "approved" && (
             <button
               onClick={handleApply}
-              disabled={applying}
+              disabled={applying || hasApplied}
               className="flex-1 bg-[#1e3a6e] hover:bg-[#162d57] text-white font-semibold py-2.5 rounded-lg text-sm transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
             >
-              {applying ? "Applying..." : "Apply Now"}
+              {hasApplied
+                ? "Already Applied"
+                : applying
+                  ? "Applying..."
+                  : "Apply Now"}
             </button>
           )}
         </div>
@@ -352,7 +369,7 @@ export function JobDetailModal({
   );
 }
 
-// ─── Post Job Modal (Updated with validation and error handling) ────────────────────────────────────────────
+// ─── Post Job Modal (Updated with validation and error handling)
 export function PostJobModal({
   onClose,
   onSubmit,
@@ -567,21 +584,28 @@ export function PostJobModal({
               <label className="block text-sm font-semibold text-gray-700 mb-1">
                 Job Type
               </label>
-              <select
+              <Select
                 value={form.type}
-                onChange={set("type")}
-                onBlur={() => handleBlur("type")}
-                className={`w-full border rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#1e3a6e] bg-white ${
-                  touched.type && fieldErrors.type
-                    ? "border-red-500 focus:ring-red-500"
-                    : "border-gray-300"
-                }`}
+                onValueChange={(value) =>
+                  setForm((prev) => ({ ...prev, type: value }))
+                }
               >
-                <option value="full-time">Full-time</option>
-                <option value="part-time">Part-time</option>
-                <option value="internship">Internship</option>
-                <option value="remote">Remote</option>
-              </select>
+                <SelectTrigger
+                  className={`w-full ${
+                    touched.type && fieldErrors.type
+                      ? "border-red-500 focus:ring-red-500"
+                      : "border-gray-300"
+                  }`}
+                >
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="full-time">Full-time</SelectItem>
+                  <SelectItem value="part-time">Part-time</SelectItem>
+                  <SelectItem value="internship">Internship</SelectItem>
+                  <SelectItem value="remote">Remote</SelectItem>
+                </SelectContent>
+              </Select>
               {touched.type && fieldErrors.type && (
                 <p className="text-red-500 text-xs mt-1">{fieldErrors.type}</p>
               )}
@@ -668,16 +692,20 @@ export function PostJobModal({
               <label className="block text-sm font-semibold text-gray-700 mb-1">
                 Application Deadline
               </label>
-              <input
-                type="date"
+              <DatePicker
                 value={form.deadline}
-                onChange={set("deadline")}
-                onBlur={() => handleBlur("deadline")}
-                className={`w-full border rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#1e3a6e] ${
+                onChange={(value) => {
+                  setForm((prev) => ({ ...prev, deadline: value }));
+                  if (fieldErrors.deadline) {
+                    setFieldErrors((prev) => ({ ...prev, deadline: "" }));
+                  }
+                }}
+                placeholder="Select deadline"
+                className={
                   touched.deadline && fieldErrors.deadline
                     ? "border-red-500 focus:ring-red-500"
-                    : "border-gray-300"
-                }`}
+                    : ""
+                }
               />
               {touched.deadline && fieldErrors.deadline && (
                 <p className="text-red-500 text-xs mt-1">
@@ -855,8 +883,19 @@ const JobsPage = () => {
     try {
       await applyJobApi(id);
       setSuccess("Application submitted successfully!");
-      // Optionally refresh jobs to update applicant count
       await fetchJobs();
+      // Keep the open modal's job in sync so "Apply Now" flips to "Already Applied"
+      // without needing to close and reopen the modal.
+      setSelectedJob((prev) => {
+        if (!prev || prev._id !== id || !user?._id) return prev;
+        const alreadyIncluded = (prev.applicants || []).includes(user._id);
+        return alreadyIncluded
+          ? prev
+          : {
+              ...prev,
+              applicants: [...(prev.applicants || []), user._id],
+            };
+      });
     } catch (err: any) {
       console.error("Application failed:", err);
       throw new Error(err.message || "Failed to submit application");
@@ -867,7 +906,8 @@ const JobsPage = () => {
     const matchSearch =
       j.title.toLowerCase().includes(search.toLowerCase()) ||
       j.company.toLowerCase().includes(search.toLowerCase());
-    const matchType = filterType ? j.type === filterType : true;
+    const matchType =
+      filterType && filterType !== "all" ? j.type === filterType : true;
     return matchSearch && matchType;
   });
 
@@ -969,17 +1009,18 @@ const JobsPage = () => {
             className="w-full pl-9 pr-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#1e3a6e]"
           />
         </div>
-        <select
-          value={filterType}
-          onChange={(e) => setFilterType(e.target.value)}
-          className="border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#1e3a6e] bg-white"
-        >
-          <option value="">All Types</option>
-          <option value="full-time">Full-time</option>
-          <option value="part-time">Part-time</option>
-          <option value="internship">Internship</option>
-          <option value="remote">Remote</option>
-        </select>
+        <Select value={filterType} onValueChange={setFilterType}>
+          <SelectTrigger className="w-full sm:w-[180px] border-gray-300">
+            <SelectValue placeholder="All Types" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Types</SelectItem>
+            <SelectItem value="full-time">Full-time</SelectItem>
+            <SelectItem value="part-time">Part-time</SelectItem>
+            <SelectItem value="internship">Internship</SelectItem>
+            <SelectItem value="remote">Remote</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
       {/* Job Grid */}
@@ -1086,6 +1127,7 @@ const JobsPage = () => {
           onClose={() => setSelectedJob(null)}
           onApply={handleApply}
           userRole={user?.role}
+          currentUserId={user?._id}
           onEdit={handleEditJob}
         />
       )}

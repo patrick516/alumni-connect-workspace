@@ -8,7 +8,8 @@ export function DashboardFooter() {
       </div>
       <div className="mx-auto flex max-w-7xl flex-col gap-3 px-4 py-6 text-sm sm:px-6 md:flex-row md:items-center md:justify-between lg:px-8">
         <p className="text-muted-foreground">
-          &copy; 2026 Exploits University Alumni Success &amp; Analytics. All Rights Reserved.
+          &copy; 2026 Exploits University Alumni Success &amp; Analytics. All
+          Rights Reserved.
         </p>
         <div className="flex items-center gap-4">
           <span className="inline-flex items-center gap-2 text-xs font-medium text-muted-foreground">
@@ -20,6 +21,7 @@ export function DashboardFooter() {
           </span>
           <a
             href="#admin-login"
+            //http://localhost:5173
             className="font-semibold text-[var(--crimson)] underline-offset-4 transition-colors hover:underline"
           >
             Admin Login
@@ -27,5 +29,5 @@ export function DashboardFooter() {
         </div>
       </div>
     </footer>
-  )
+  );
 }

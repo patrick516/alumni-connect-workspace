@@ -83,6 +83,7 @@ const userSchema = new mongoose.Schema(
       default: undefined,
     },
     interests: [{ type: String }],
+    profileViews: { type: Number, default: 0 },
   },
   { timestamps: true },
 );

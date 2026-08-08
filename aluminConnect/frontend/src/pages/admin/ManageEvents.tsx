@@ -4,10 +4,12 @@ import {
   getEventsApi,
   createEventApi,
   deleteEventApi,
+  approveEventApi,
   getEventParticipantsApi,
   type EventParticipant,
   type EventParticipantsResponse,
 } from "../../api/eventApi";
+
 import type { Event } from "../../types";
 import {
   X,
@@ -17,9 +19,9 @@ import {
   GraduationCap,
   Building2,
   Briefcase,
+  CheckCircle,
 } from "lucide-react";
 
-// ── Participants drawer ───────────────────────────────────────────────────────
 const ParticipantsDrawer = ({
   eventId,
   onClose,
@@ -184,10 +186,11 @@ const ParticipantsDrawer = ({
   );
 };
 
-// ── Main page ─────────────────────────────────────────────────────────────────
+// ── Main page
 const ManageEvents = () => {
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
+  const [filterStatus, setFilterStatus] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState("");
@@ -244,6 +247,26 @@ const ManageEvents = () => {
     }
   };
 
+  const handleApprove = async (id: string) => {
+    try {
+      await approveEventApi(id);
+      setSuccess("Event approved and published.");
+      fetchEvents();
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Failed to approve");
+    }
+  };
+
+  const filteredEvents = filterStatus
+    ? events.filter((e) => e.status === filterStatus)
+    : events;
+
+  const statusBadge = (status: string) => {
+    if (status === "approved") return "bg-green-100 text-green-700";
+    if (status === "pending") return "bg-yellow-100 text-yellow-700";
+    return "bg-red-100 text-red-700";
+  };
+
   return (
     <PageContainer title="Manage Events">
       {/* Participants drawer */}
@@ -254,13 +277,24 @@ const ManageEvents = () => {
         />
       )}
 
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
         <div>
           <h2 className="text-xl font-bold text-gray-900">Event Management</h2>
           <p className="text-sm text-gray-500 mt-0.5">
-            {events.length} events total
+            {events.filter((e) => e.status === "pending").length} pending
+            approval
           </p>
         </div>
+        <select
+          value={filterStatus}
+          onChange={(e) => setFilterStatus(e.target.value)}
+          className="border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#1e3a6e] bg-white w-full sm:w-auto"
+        >
+          <option value="">All Events</option>
+          <option value="pending">Pending</option>
+          <option value="approved">Approved</option>
+          <option value="rejected">Rejected</option>
+        </select>
         <button
           onClick={() => setShowModal(true)}
           className="bg-[#1e3a6e] hover:bg-[#162d57] text-white font-semibold px-5 py-2.5 rounded-lg text-sm transition-colors flex items-center gap-2"
@@ -301,9 +335,9 @@ const ManageEvents = () => {
             />
           ))}
         </div>
-      ) : events.length === 0 ? (
+      ) : filteredEvents.length === 0 ? (
         <div className="text-center py-16">
-          <p className="text-gray-400 text-sm mb-3">No events created yet.</p>
+          <p className="text-gray-400 text-sm mb-3">No events found.</p>
           <button
             onClick={() => setShowModal(true)}
             className="bg-[#1e3a6e] text-white text-sm font-semibold px-5 py-2 rounded-lg hover:bg-[#162d57] transition-colors"
@@ -313,7 +347,7 @@ const ManageEvents = () => {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {events.map((event) => {
+          {filteredEvents.map((event) => {
             const isPast = new Date(event.eventDate) < new Date();
             const count = event.participants?.length || 0;
             return (
@@ -321,19 +355,26 @@ const ManageEvents = () => {
                 key={event._id}
                 className="bg-white rounded-xl p-5 shadow-sm border border-gray-100 flex flex-col"
               >
-                <div className="flex items-start justify-between mb-2">
+                <div className="flex items-start justify-between gap-2 mb-2">
                   <h3 className="font-semibold text-gray-900 text-sm">
                     {event.title}
                   </h3>
-                  <span
-                    className={`text-xs px-2 py-0.5 rounded-full font-medium flex-shrink-0 ml-2 ${
-                      isPast
-                        ? "bg-gray-100 text-gray-500"
-                        : "bg-blue-100 text-[#1e3a6e]"
-                    }`}
-                  >
-                    {isPast ? "Past" : "Upcoming"}
-                  </span>
+                  <div className="flex flex-col items-end gap-1 flex-shrink-0">
+                    <span
+                      className={`text-xs px-2 py-0.5 rounded-full font-medium ${
+                        isPast
+                          ? "bg-gray-100 text-gray-500"
+                          : "bg-blue-100 text-[#1e3a6e]"
+                      }`}
+                    >
+                      {isPast ? "Past" : "Upcoming"}
+                    </span>
+                    <span
+                      className={`text-xs px-2 py-0.5 rounded-full font-medium capitalize ${statusBadge(event.status)}`}
+                    >
+                      {event.status}
+                    </span>
+                  </div>
                 </div>
                 <p className="text-xs text-gray-500 line-clamp-2 mb-3">
                   {event.description}
@@ -350,6 +391,15 @@ const ManageEvents = () => {
                   </p>
                   {event.location && <p>📍 {event.location}</p>}
                 </div>
+
+                {event.status === "pending" && (
+                  <button
+                    onClick={() => handleApprove(event._id)}
+                    className="w-full flex items-center justify-center gap-1.5 text-xs bg-green-100 hover:bg-green-200 text-green-700 font-medium py-2 rounded-lg transition-colors mb-2"
+                  >
+                    <CheckCircle size={13} /> Approve Event
+                  </button>
+                )}
 
                 {/* Registrants button */}
                 <button

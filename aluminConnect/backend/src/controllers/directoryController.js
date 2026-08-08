@@ -1,4 +1,5 @@
 const User = require("../models/User");
+const ProfileView = require("../models/ProfileView");
 
 const publicFields =
   "name email profilePhoto graduationYear company position role bio skills isApproved department location";
@@ -124,8 +125,56 @@ exports.listStudents = async (req, res) => {
   });
 };
 
+// Get a single user's full profile — counts a view unless viewing your own
+// Get a single user's full profile — logs a distinct view unless viewing your own
+exports.getProfileById = async (req, res) => {
+  const { id } = req.params;
+  const isOwnProfile = id === req.user.userId;
+
+  const user = await User.findById(id)
+    .select(publicFields + " employmentStatus")
+    .lean();
+
+  if (!user) {
+    return res.status(404).json({ success: false, message: "User not found" });
+  }
+
+  if (!isOwnProfile) {
+    // Upsert: same viewer visiting again just refreshes the timestamp,
+    // it doesn't inflate the distinct-viewer count.
+    await ProfileView.findOneAndUpdate(
+      { viewer: req.user.userId, viewedUser: id },
+      { viewer: req.user.userId, viewedUser: id },
+      { upsert: true, setDefaultsOnInsert: true },
+    );
+  }
+
+  const profileViews = await ProfileView.countDocuments({ viewedUser: id });
+
+  res.json({
+    success: true,
+    user: {
+      _id: String(user._id),
+      name: user.name,
+      email: user.email,
+      profilePhoto: user.profilePhoto || "",
+      graduationYear: user.graduationYear,
+      company: user.company,
+      position: user.position,
+      department: user.department,
+      location: user.location,
+      role: user.role,
+      bio: user.bio || "",
+      skills: user.skills || [],
+      employmentStatus: user.employmentStatus || "",
+      profileViews,
+    },
+  });
+};
+
 // Get filter options (departments, skills for dropdowns)
 exports.getFilterOptions = async (req, res) => {
+  s;
   const alumni = await User.find({ role: "alumni", isApproved: true }).lean();
 
   // Extract unique departments

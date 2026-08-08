@@ -51,6 +51,20 @@ export async function getStudentsDirectoryApi(
   }
 }
 
+export async function getUserProfileByIdApi(
+  id: string,
+): Promise<DirectoryUser & { profileViews: number }> {
+  try {
+    const { data } = await api.get<{
+      success: boolean;
+      user: DirectoryUser & { profileViews: number };
+    }>(`/directory/profile/${id}`);
+    return data.user;
+  } catch (e) {
+    throw new Error(getErrorMessage(e, "Failed to load profile"));
+  }
+}
+
 export async function getDirectoryFilterOptionsApi(): Promise<FilterOptions> {
   try {
     const { data } = await api.get<{

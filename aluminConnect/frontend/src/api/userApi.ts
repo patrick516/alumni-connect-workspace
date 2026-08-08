@@ -212,6 +212,7 @@ export async function openCvInNewTab(): Promise<void> {
 }
 
 export interface ProfileStats {
+  profileViews: number;
   jobsApplied: number;
   appliedJobs: {
     _id: string;

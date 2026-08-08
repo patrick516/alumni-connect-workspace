@@ -9,6 +9,7 @@ import {
   rejectConnectionApi,
 } from "../../api/connectionApi";
 import type { AlumniConnectionsResponse } from "../../types";
+import UserProfileModal from "../../components/directory/UserProfileModal";
 
 const AlumniStudentsPage = () => {
   const { user } = useAuth();
@@ -16,6 +17,7 @@ const AlumniStudentsPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [busyId, setBusyId] = useState<string | null>(null);
+  const [viewingUserId, setViewingUserId] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     setError("");
@@ -69,6 +71,12 @@ const AlumniStudentsPage = () => {
 
   return (
     <PageContainer title="Students & requests">
+      {viewingUserId && (
+        <UserProfileModal
+          userId={viewingUserId}
+          onClose={() => setViewingUserId(null)}
+        />
+      )}
       <p className="text-sm text-gray-500 mb-6 max-w-2xl">
         Incoming connection requests appear below. Accept to allow messaging
         with that student. Decline removes the request (they may send again
@@ -84,7 +92,10 @@ const AlumniStudentsPage = () => {
       {loading || !data ? (
         <div className="space-y-4">
           {[1, 2].map((i) => (
-            <div key={i} className="h-24 rounded-xl bg-gray-100 animate-pulse" />
+            <div
+              key={i}
+              className="h-24 rounded-xl bg-gray-100 animate-pulse"
+            />
           ))}
         </div>
       ) : (
@@ -121,6 +132,13 @@ const AlumniStudentsPage = () => {
                       </div>
                     </div>
                     <div className="flex gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setViewingUserId(row.student._id)}
+                        className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-white"
+                      >
+                        View Profile
+                      </button>
                       <button
                         type="button"
                         disabled={busyId === row._id}
@@ -172,12 +190,21 @@ const AlumniStudentsPage = () => {
                         </p>
                       </div>
                     </div>
-                    <Link
-                      to={`/messages?with=${row.student._id}`}
-                      className="shrink-0 rounded-lg bg-[#1e3a6e] px-3 py-1.5 text-xs font-semibold text-white hover:bg-[#162d57]"
-                    >
-                      Chat
-                    </Link>
+                    <div className="flex shrink-0 gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setViewingUserId(row.student._id)}
+                        className="rounded-lg border border-gray-300 px-3 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50"
+                      >
+                        View Profile
+                      </button>
+                      <Link
+                        to={`/messages?with=${row.student._id}`}
+                        className="rounded-lg bg-[#1e3a6e] px-3 py-1.5 text-xs font-semibold text-white hover:bg-[#162d57]"
+                      >
+                        Chat
+                      </Link>
+                    </div>
                   </li>
                 ))}
               </ul>

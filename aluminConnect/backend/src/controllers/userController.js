@@ -3,6 +3,7 @@ const User = require("../models/User");
 const Job = require("../models/Job");
 const Event = require("../models/Event");
 const Connection = require("../models/Connection");
+const ProfileView = require("../models/ProfileView");
 const formatUser = require("../utils/formatUser");
 const { canExchangeMessages } = require("../services/connection.service");
 
@@ -188,8 +189,13 @@ exports.getProfileStats = async (req, res) => {
     .populate("organizer", "name")
     .lean();
 
+  const profileViews = await ProfileView.countDocuments({
+    viewedUser: userId,
+  });
+
   res.json({
     success: true,
+    profileViews,
     jobsApplied,
     appliedJobs: appliedJobs.map((j) => ({
       _id: String(j._id),

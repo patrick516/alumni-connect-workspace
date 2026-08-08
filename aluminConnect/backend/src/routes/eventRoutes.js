@@ -11,25 +11,42 @@ const router = express.Router();
 
 router.use(authenticate, requireApprovedAlumni);
 
+// Public routes (students & alumni can view approved events; admin sees all)
 router.get("/", eventController.listEvents);
+router.get("/filters", eventController.getEventFilters);
+router.get("/stats", eventController.getEventStats);
+
+// Create event — alumni, students, and admin can propose
 router.post(
   "/",
-  authorize("admin"),
+  authorize("alumni", "student", "admin"),
   createEventValidation,
   validate,
   eventController.createEvent,
 );
-router.post("/:id/join", eventController.joinEvent);
-router.delete("/:id", authorize("admin"), eventController.deleteEvent);
 
-// Participants list (admin only)
-router.get(
-  "/:id/participants",
-  authorize("admin"),
-  eventController.getParticipants,
+// Join event — any authenticated user
+router.post("/:id/join", eventController.joinEvent);
+
+// Update event (owner or admin)
+router.put(
+  "/:id",
+  authorize("alumni", "student", "admin"),
+  createEventValidation,
+  validate,
+  eventController.updateEvent,
 );
 
-// NEW: Send event reminders (admin only, can be called by cron)
+// Delete event (owner or admin)
+router.delete("/:id", eventController.deleteEvent);
+
+// Admin only
+router.put("/:id/approve", authorize("admin"), eventController.approveEvent);
+
+// Participants list (admin or organizer)
+router.get("/:id/participants", eventController.getParticipants);
+
+// Send event reminders (admin only, can be called by cron)
 router.post(
   "/reminders",
   authorize("admin"),

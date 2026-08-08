@@ -11,4 +11,5 @@ export interface Event {
   participants?: string[];
   imageUrl?: string;
   createdAt: string;
+  status: "pending" | "approved" | "rejected";
 }

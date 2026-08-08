@@ -16,7 +16,7 @@ export async function getConversationsApi(): Promise<Conversation[]> {
 export async function getMessagesApi(userId: string): Promise<Message[]> {
   try {
     const { data } = await api.get<{ success: boolean; messages: Message[] }>(
-      `/messages/${userId}`,
+      `/messages/thread/${userId}`,
     );
     return data.messages;
   } catch (e) {
@@ -30,7 +30,7 @@ export async function sendMessageApi(
 ): Promise<Message> {
   try {
     const { data } = await api.post<{ success: boolean; message: Message }>(
-      "/messages",
+      "/messages/send",
       { receiverId, message },
     );
     return data.message;

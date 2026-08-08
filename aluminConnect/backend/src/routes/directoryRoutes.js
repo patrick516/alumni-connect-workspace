@@ -33,4 +33,7 @@ router.get(
   directoryController.listStudents,
 );
 
+// Get one user's full profile — increments their profileViews unless it's their own
+router.get("/profile/:id", directoryController.getProfileById);
+
 module.exports = router;

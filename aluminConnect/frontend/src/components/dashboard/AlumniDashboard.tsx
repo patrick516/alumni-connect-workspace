@@ -4,8 +4,9 @@ import PageContainer from "../../components/layout/PageContainer";
 import { useAuth } from "../../context/AuthContext";
 import { getJobsApi } from "../../api/jobApi";
 import { getEventsApi } from "../../api/eventApi";
+import { getConversationsApi } from "../../api/messageApi";
+import { getProfileStatsApi } from "../../api/userApi";
 import type { Job, Event } from "../../types";
-
 const StatCard = ({
   label,
   value,
@@ -40,20 +41,28 @@ const AlumniDashboardPage = () => {
   const { user } = useAuth();
   const [myJobs, setMyJobs] = useState<Job[]>([]);
   const [events, setEvents] = useState<Event[]>([]);
+  const [conversationsCount, setConversationsCount] = useState(0);
+  const [profileViews, setProfileViews] = useState(0);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    Promise.all([getJobsApi(), getEventsApi()])
-      .then(([j, e]) => {
+    Promise.all([
+      getJobsApi(),
+      getEventsApi(),
+      getConversationsApi(),
+      getProfileStatsApi(),
+    ])
+      .then(([j, e, conversations, profileStats]) => {
         setMyJobs(
           j.filter((job) => job.postedBy?._id === user?._id).slice(0, 4),
         );
         setEvents(e.slice(0, 3));
+        setConversationsCount(conversations.length);
+        setProfileViews(profileStats.profileViews);
       })
       .catch(console.error)
       .finally(() => setLoading(false));
   }, [user]);
-
   return (
     <PageContainer title="Alumni Dashboard">
       {/* Welcome banner */}
@@ -119,7 +128,7 @@ const AlumniDashboardPage = () => {
         />
         <StatCard
           label="Messages"
-          value={0}
+          value={conversationsCount}
           color="bg-emerald-600"
           icon={
             <svg
@@ -136,7 +145,7 @@ const AlumniDashboardPage = () => {
         />
         <StatCard
           label="Profile Views"
-          value={0}
+          value={profileViews}
           color="bg-violet-600"
           icon={
             <svg

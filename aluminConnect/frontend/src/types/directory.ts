@@ -1,4 +1,3 @@
-// frontend/src/types/directory.ts
 export interface DirectoryUser {
   _id: string;
   name: string;
@@ -12,6 +11,7 @@ export interface DirectoryUser {
   role: string;
   bio?: string;
   skills?: string[];
+  employmentStatus?: string;
 }
 
 export interface DirectoryFilters {

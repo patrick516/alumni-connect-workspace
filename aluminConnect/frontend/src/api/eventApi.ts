@@ -20,9 +20,17 @@ export async function createEventApi(data: Partial<Event>): Promise<Event> {
 
 export async function deleteEventApi(id: string): Promise<void> {
   try {
-    await api.delete(`/admin/events/${id}`);
+    await api.delete(`/events/${id}`);
   } catch (e) {
     throw new Error(getErrorMessage(e, "Failed to delete event"));
+  }
+}
+
+export async function approveEventApi(id: string): Promise<void> {
+  try {
+    await api.put(`/events/${id}/approve`);
+  } catch (e) {
+    throw new Error(getErrorMessage(e, "Failed to approve event"));
   }
 }
 

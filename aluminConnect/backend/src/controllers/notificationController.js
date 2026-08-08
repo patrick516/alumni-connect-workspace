@@ -9,11 +9,13 @@ const getNotifications = async (req, res) => {
   try {
     const { limit = 20, skip = 0 } = req.query;
     const notifications = await notificationService.getUserNotifications(
-      req.user._id,
+      req.user.userId,
       parseInt(limit),
       parseInt(skip),
     );
-    const unreadCount = await notificationService.getUnreadCount(req.user._id);
+    const unreadCount = await notificationService.getUnreadCount(
+      req.user.userId,
+    );
 
     res.json({
       success: true,
@@ -38,9 +40,8 @@ const markAsRead = async (req, res) => {
   try {
     const notification = await notificationService.markAsRead(
       req.params.id,
-      req.user._id,
+      req.user.userId,
     );
-
     if (!notification) {
       return res
         .status(404)
@@ -59,7 +60,7 @@ const markAsRead = async (req, res) => {
 // @access  Private
 const markAllAsRead = async (req, res) => {
   try {
-    await notificationService.markAllAsRead(req.user._id);
+    await notificationService.markAllAsRead(req.user.userId);
     res.json({ success: true, message: "All notifications marked as read" });
   } catch (error) {
     console.error("Mark all as read error:", error);
@@ -74,9 +75,8 @@ const deleteNotification = async (req, res) => {
   try {
     const notification = await notificationService.deleteNotification(
       req.params.id,
-      req.user._id,
+      req.user.userId,
     );
-
     if (!notification) {
       return res
         .status(404)
@@ -95,7 +95,7 @@ const deleteNotification = async (req, res) => {
 // @access  Private
 const getUnreadCount = async (req, res) => {
   try {
-    const count = await notificationService.getUnreadCount(req.user._id);
+    const count = await notificationService.getUnreadCount(req.user.userId);
     res.json({ success: true, unreadCount: count });
   } catch (error) {
     console.error("Get unread count error:", error);

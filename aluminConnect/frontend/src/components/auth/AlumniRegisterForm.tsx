@@ -3,7 +3,13 @@ import { Link } from "react-router-dom";
 import RoleSelector from "./RoleSelector";
 import { useAuth } from "../../context/AuthContext";
 import { getDepartmentsApi, type Department } from "../../api/userApi";
-
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../ui/select";
 interface AlumniRegisterFormProps {
   onSwitchRole?: () => void;
 }
@@ -153,21 +159,23 @@ const AlumniRegisterForm = ({ onSwitchRole }: AlumniRegisterFormProps) => {
         <label className="block text-sm font-semibold text-gray-700 mb-1">
           Department *
         </label>
-        <select
-          name="department"
+        <Select
           value={form.department}
-          onChange={handleChange}
-          required
+          onValueChange={(value) => setForm({ ...form, department: value })}
           disabled={departmentsLoading}
-          className="w-full border border-gray-300 rounded px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#d2621a] focus:border-transparent bg-white"
         >
-          <option value="">Select your department</option>
-          {departments.map((dept) => (
-            <option key={dept._id} value={dept.name}>
-              {dept.name} ({dept.code})
-            </option>
-          ))}
-        </select>
+          <SelectTrigger className="w-full border-gray-300 focus:ring-2 focus:ring-[#d2621a]">
+            <SelectValue placeholder="Select your department" />
+          </SelectTrigger>
+          <SelectContent>
+            {departments.map((dept) => (
+              <SelectItem key={dept._id} value={dept.name}>
+                {dept.name} ({dept.code})
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        value={form.gender}
         {departmentsLoading && (
           <p className="text-xs text-gray-400 mt-1">Loading departments...</p>
         )}
@@ -183,18 +191,19 @@ const AlumniRegisterForm = ({ onSwitchRole }: AlumniRegisterFormProps) => {
         <label className="block text-sm font-semibold text-gray-700 mb-1">
           Gender *
         </label>
-        <select
-          name="gender"
+        <Select
           value={form.gender}
-          onChange={handleChange}
-          required
-          className="w-full border border-gray-300 rounded px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#d2621a] focus:border-transparent bg-white"
+          onValueChange={(value) => setForm({ ...form, gender: value })}
         >
-          <option value="">Select your gender</option>
-          <option value="male">Male</option>
-          <option value="female">Female</option>
-          <option value="other">Other</option>
-        </select>
+          <SelectTrigger className="w-full border-gray-300 focus:ring-2 focus:ring-[#d2621a]">
+            <SelectValue placeholder="Select your gender" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="male">Male</SelectItem>
+            <SelectItem value="female">Female</SelectItem>
+            <SelectItem value="other">Other</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
       {/* Phone */}
@@ -252,34 +261,24 @@ const AlumniRegisterForm = ({ onSwitchRole }: AlumniRegisterFormProps) => {
         <label className="block text-sm font-semibold text-gray-700 mb-1">
           Graduation Year
         </label>
-        <div className="relative">
-          <select
-            name="graduationYear"
-            value={form.graduationYear}
-            onChange={handleChange}
-            required
-            className="w-full border border-gray-300 rounded px-3 py-2.5 pr-8 text-sm focus:outline-none focus:ring-2 focus:ring-[#d2621a] focus:border-transparent bg-white appearance-none text-gray-500"
-          >
-            <option value=""></option>
-            {Array.from({ length: 20 }, (_, i) => 2000 + i + 5).map((y) => (
-              <option key={y} value={String(y)}>
+        <Select
+          value={form.graduationYear}
+          onValueChange={(value) => setForm({ ...form, graduationYear: value })}
+        >
+          <SelectTrigger className="w-full border-gray-300 focus:ring-2 focus:ring-[#d2621a]">
+            <SelectValue placeholder="Select graduation year" />
+          </SelectTrigger>
+          <SelectContent>
+            {Array.from(
+              { length: 40 },
+              (_, i) => new Date().getFullYear() - i,
+            ).map((y) => (
+              <SelectItem key={y} value={String(y)}>
                 {y}
-              </option>
+              </SelectItem>
             ))}
-          </select>
-          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="w-4 h-4"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-            >
-              <polyline points="6 9 12 15 18 9" />
-            </svg>
-          </span>
-        </div>
+          </SelectContent>
+        </Select>
       </div>
 
       {/* Company */}
