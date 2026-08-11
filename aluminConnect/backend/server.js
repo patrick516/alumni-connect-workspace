@@ -24,8 +24,8 @@ const PORT = process.env.PORT || 5000;
 
 // ---------------- CORS CONFIGURATION ----------------
 const allowedOrigins = process.env.CORS_ORIGIN
-  ? process.env.CORS_ORIGIN.split(",") // split comma-separated list
-  : ["https://alumni-connect-pied-nine.vercel.app"];
+  ? process.env.CORS_ORIGIN.split(",")
+  : [];
 
 app.use(
   cors({
