@@ -8,7 +8,7 @@ const LoginPage = () => {
   const pendingAlumni = searchParams.get("pending") === "alumni";
 
   return (
-    <Background imagePath="/background.webp">
+    <Background imagePath="/background.jpeg">
       <div className="min-h-screen flex flex-col">
         <LogoHeader />
         <div className="flex-1 flex items-center  justify-center p-6">

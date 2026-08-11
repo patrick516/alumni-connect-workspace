@@ -7,7 +7,7 @@ interface BackgroundProps {
 
 const Background: React.FC<BackgroundProps> = ({
   children,
-  imagePath = "/students.webp",
+  imagePath = "/students.jpeg",
 }) => {
   return (
     <div className="min-h-screen relative">
