@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { formatDistanceToNow } from "date-fns";
 import PageContainer from "../components/layout/PageContainer";
 import {
@@ -8,8 +8,8 @@ import {
   markAllNotificationsAsReadApi,
   deleteNotificationApi,
 } from "../api/notificationApi";
-import { useAuth } from "../context/AuthContext";
-import { useSocket } from "../context/SocketContext";
+// import { useAuth } from "../context/AuthContext";
+// import { useSocket } from "../context/SocketContext";
 import type { Notification } from "../types";
 
 const NotificationsPage = () => {
@@ -68,7 +68,7 @@ const NotificationsPage = () => {
 
   // Listen for real-time notifications
   useEffect(() => {
-    const handleNewNotification = (event: CustomEvent) => {
+    const handleNewNotification = (_event: CustomEvent) => {
       //   const data = event.detail;
       // Refresh notifications when new one arrives
       fetchNotifications(true);
